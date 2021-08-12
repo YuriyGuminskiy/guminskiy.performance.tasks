@@ -7,28 +7,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class Logging {
-    public static String logLine;
+    public static String logLine = "";
+    public static String usersMessage;
 
     public static void main(String[] args) {
         selectionTypeOfInformationViewing();
     }
 
     public static String currentTime() {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(" MM.dd.yyyy: HH.mm:ss.SSS\n");
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(" MM.dd.yyyy: HH.mm:ss.SSS");
         return dtf.format(LocalDateTime.now());
     }
 
     public static void selectionTypeOfInformationViewing() {
-        Path path = Path.of("c:\\PerformanceLogs\\log.txt");
-        try {
-            Files.createDirectories(path.getParent());
-            if (!Files.exists(path)){
-                Files.createFile(path);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         while (true) {
             System.out.println("Please make a choice and input in console one of Type of logs information viewing: " +
                     "CONSOLE or FILE.\nIf you want to close this program input EXIT (case is not important)");
@@ -51,16 +42,32 @@ public class Logging {
             switch (logsViewing) {
                 case CONSOLE:
                     writeLog();
-                    System.out.println(logLine);
-                    continue;
+                    if (!logLine.equals("")) {
+                        System.out.println(logLine);
+                        continue;
+                    } else
+                        break;
                 case FILE:
-                    writeLog();
+                    System.out.println("Input file's name:");
+                    String fileName = new Scanner(System.in).nextLine().trim();
+                    Path path = Path.of("c:\\PerformanceLogs\\" + fileName + ".txt");
                     try {
-                        Files.writeString(path, logLine, StandardOpenOption.APPEND);
+                        Files.createDirectories(path.getParent());
+                        if (!Files.exists(path)){
+                            Files.createFile(path);
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    System.out.println("Log have been written to file\n");
+                    writeLog();
+                    try {
+                        if (!logLine.equals("")) {
+                            Files.writeString(path, logLine, StandardOpenOption.APPEND);
+                            System.out.println("Log have been written to file by path: " + path + "\n");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
             }
         }
     }
@@ -72,6 +79,7 @@ public class Logging {
             String choiceTypeOfLogs = new Scanner(System.in).nextLine();
 
             if (choiceTypeOfLogs.equalsIgnoreCase("back")) {
+                logLine = "";
                 System.out.println("We are returned to menu about choice of Type of logs information viewing\n");
                 break;
             }
@@ -83,8 +91,14 @@ public class Logging {
                 System.out.println("You input incorrect command. Try again.\n");
                 continue;
             }
-            logLine = (logsType + currentTime());
+            inputMessage();
+            logLine = (logsType + currentTime() + usersMessage);
             break;
         }
+    }
+
+    public static void inputMessage() {
+        System.out.println("Input your message about this log:");
+        usersMessage = (" - " + new Scanner(System.in).nextLine().trim() + "\n");
     }
 }
